@@ -7,17 +7,19 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/{[a-zA-Z0-9]+}", fileUpload)
 	r.HandleFunc("/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}", fileDownload)
+	r.HandleFunc("/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}/delete", fileDelete)
 	r.HandleFunc("/", helloFunc)
 
-	addr := ":"+os.Getenv("PORT")
+	addr := ":" + os.Getenv("PORT")
 
-	fmt.Println("Ouvindo em", addr)
+	fmt.Println(addr)
 	http.ListenAndServe(addr, r)
 }
 
@@ -27,7 +29,7 @@ func helloFunc(w http.ResponseWriter, req *http.Request) {
 		<head>
 			<meta charset="UTF-8">
 			<title>Dontfile</title>
-			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/css/materialize.min.css">
+			<link rel="stylesheet" href="https://bootswatch.com/lumen/bootstrap.min.css">
 		</head>
 		<body>
 		<div class="container">
@@ -36,6 +38,9 @@ func helloFunc(w http.ResponseWriter, req *http.Request) {
 }
 
 func fileUpload(w http.ResponseWriter, req *http.Request) {
+
+	cmd := exec.Command("mkdir", "storage")
+	cmd.Run()
 
 	dir := req.URL.Path[1:]
 
@@ -53,10 +58,10 @@ func fileUpload(w http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 
-		cmd := exec.Command("mkdir", dir)
+		cmd := exec.Command("mkdir", "storage/"+dir)
 		cmd.Run()
 
-		err = ioutil.WriteFile(dir+"/"+fin, fileBytes, 0644)
+		err = ioutil.WriteFile("storage/"+dir+"/"+fin, fileBytes, 0644)
 		if err != nil {
 			panic(err)
 		}
@@ -66,37 +71,44 @@ func fileUpload(w http.ResponseWriter, req *http.Request) {
 		<head>
 			<meta charset="UTF-8">
 			<title>Dontfile</title>
-			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/css/materialize.min.css">
+			<link rel="stylesheet" href="https://bootswatch.com/lumen/bootstrap.min.css">
 		</head>
 		<body>
-		<div class="container">`)
+		<div class="container">
+		<div class="row"><br>`)
 
-	files, _ := ioutil.ReadDir(dir)
+	files, _ := ioutil.ReadDir("storage/" + dir)
 	for _, file := range files {
-		//fmt.Fprintf(w, `<a href="%s">%s</a>`, dir+"/"+file.Name(), file.Name())
-		fmt.Fprintf(w, `<div class="col s12 m7">
-						    <div class="card horizontal">
-						      <div class="card-stacked">
-						        <div class="card-content">
-						          <p>%s</p>
-						        </div>
-						        <div class="card-action">
-						          <a href="%s">Download</a>
-						        </div>
-						      </div>
+		fmt.Fprintf(w, `
+						<div class="col-md-3">
+						    <div class="panel panel-default">
+						        	<div class="panel-heading">
+							          <p>%s</p>
+							        </div>
+							        <div class="panel-body">
+							          <a class="btn btn-danger" href="%s">Deletar</a>
+							          <a class="btn btn-primary" href="%s">Download</a>
+						          </div>
 						    </div>
-						  </div>`, file.Name(), dir+"/"+file.Name())
+						  
+						</div>`, file.Name(), dir+"/"+file.Name()+"/delete", dir+"/"+file.Name())
 	}
-	//fmt.Fprintf(w, )
 
-	fmt.Fprintf(w, `<form action="/%s" method="post" enctype="multipart/form-data">
-				<div class="input-field col s6">
-					<input id="file" type="file" name="file">
-					<button class="btn waves-effect waves-light" type="submit">Enviar</button>
+	fmt.Fprintf(w, `</div><hr><div class="row">
+		<form class="form-horizontal" action="/%s" method="post" enctype="multipart/form-data">
+						<fieldset>
+				<div class="input-field">
+					<div class="form-group">
+						<input class="form-control" id="file" type="file" name="file">
+					</div>
+					<div class="form-group">
+						<button class="btn btn-default btn-lg btn-block" type="submit">Enviar</button>
+					</div>
 				</div>
 				<br>
-				
+				</fieldset>
 			</form>
+			</div>
 			</div>
 		</body>
 		</html>`, dir)
@@ -104,5 +116,18 @@ func fileUpload(w http.ResponseWriter, req *http.Request) {
 }
 
 func fileDownload(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, req.URL.Path[1:])
+	dir := "storage/" + req.URL.Path[1:]
+	http.ServeFile(w, req, dir)
+}
+
+func fileDelete(w http.ResponseWriter, req *http.Request) {
+	dir := "storage/" + req.URL.Path[1:]
+	dir = strings.TrimSuffix(dir, "/delete")
+
+	cmd := exec.Command("rm", "-rf", dir)
+	cmd.Run()
+
+	dirs := strings.Split(dir, "/")
+
+	http.Redirect(w, req, "/"+dirs[1], 301)
 }
