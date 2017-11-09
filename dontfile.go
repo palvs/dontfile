@@ -29,7 +29,7 @@ func helloFunc(w http.ResponseWriter, req *http.Request) {
 		<head>
 			<meta charset="UTF-8">
 			<title>Dontfile</title>
-			<link rel="stylesheet" href="https://bootswatch.com/lumen/bootstrap.min.css">
+			<link rel="stylesheet"href="https://bootswatch.com/4/lumen/bootstrap.min.css">
 		</head>
 		<body>
 		<div class="container">
@@ -71,9 +71,10 @@ func fileUpload(w http.ResponseWriter, req *http.Request) {
 		<head>
 			<meta charset="UTF-8">
 			<title>Dontfile</title>
-			<link rel="stylesheet" href="https://bootswatch.com/lumen/bootstrap.min.css">
+			<link rel="stylesheet"href="https://bootswatch.com/4/lumen/bootstrap.min.css">
 		</head>
 		<body>
+		<br>
 		<div class="container">
 		<div class="row"><br>`)
 
@@ -99,7 +100,7 @@ func fileUpload(w http.ResponseWriter, req *http.Request) {
 						<fieldset>
 				<div class="input-field">
 					<div class="form-group">
-						<input class="form-control" id="file" type="file" name="file">
+						<input class="form-control" id="file" type="file" name="file" multiple>
 					</div>
 					<div class="form-group">
 						<button class="btn btn-default btn-lg btn-block" type="submit">Enviar</button>
