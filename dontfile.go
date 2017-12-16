@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -10,12 +11,19 @@ import (
 	"strings"
 )
 
+type Upload struct {
+	Directory string
+	Files     []os.FileInfo
+}
+
 func main() {
 	r := mux.NewRouter()
+
+	r.HandleFunc("/", indexHandler)
+
 	r.HandleFunc("/{[a-zA-Z0-9]+}", fileUpload)
 	r.HandleFunc("/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}", fileDownload)
 	r.HandleFunc("/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}/delete", fileDelete)
-	r.HandleFunc("/", helloFunc)
 
 	addr := ":" + os.Getenv("PORT")
 
@@ -23,37 +31,28 @@ func main() {
 	http.ListenAndServe(addr, r)
 }
 
-func helloFunc(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintln(w, `<!DOCTYPE html>
-		<html lang="en">
-		<head>
-			<meta charset="UTF-8">
-			<title>Dontfile</title>
-			<link rel="stylesheet"href="https://bootswatch.com/4/lumen/bootstrap.min.css">
-		</head>
-		<body>
-		<div class="container">
-		<h2>Use /{link} para compartilhar arquivos!</h2></body>
-		</html>`)
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("views/index.html")
+	t.Execute(w, nil)
 }
 
-func fileUpload(w http.ResponseWriter, req *http.Request) {
+func fileUpload(w http.ResponseWriter, r *http.Request) {
 
 	cmd := exec.Command("mkdir", "storage")
 	cmd.Run()
 
-	dir := req.URL.Path[1:]
+	dir := r.URL.Path[1:]
 
-	if req.Method == http.MethodPost {
-		file, header, err := req.FormFile("file")
+	if r.Method == http.MethodPost {
+		upload, header, err := r.FormFile("file")
 		if err != nil {
 			panic(err)
 		}
-		defer file.Close()
+		defer upload.Close()
 
 		fin := header.Filename
 
-		fileBytes, err := ioutil.ReadAll(file)
+		fileBytes, err := ioutil.ReadAll(upload)
 		if err != nil {
 			panic(err)
 		}
@@ -66,63 +65,23 @@ func fileUpload(w http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 	}
-	fmt.Fprintf(w, `<!DOCTYPE html>
-		<html lang="en">
-		<head>
-			<meta charset="UTF-8">
-			<title>Dontfile</title>
-			<link rel="stylesheet"href="https://bootswatch.com/4/lumen/bootstrap.min.css">
-		</head>
-		<body>
-		<br>
-		<div class="container">
-		<div class="row"><br>`)
 
 	files, _ := ioutil.ReadDir("storage/" + dir)
-	for _, file := range files {
-		fmt.Fprintf(w, `
-						<div class="col-md-3">
-						    <div class="panel panel-default">
-						        	<div class="panel-heading">
-							          <p>%s</p>
-							        </div>
-							        <div class="panel-body">
-							          <a class="btn btn-danger" href="%s">Deletar</a>
-							          <a class="btn btn-primary" href="%s">Download</a>
-						          </div>
-						    </div>
-						  
-						</div>`, file.Name(), dir+"/"+file.Name()+"/delete", dir+"/"+file.Name())
-	}
 
-	fmt.Fprintf(w, `</div><hr><div class="row">
-		<form class="form-horizontal" action="/%s" method="post" enctype="multipart/form-data">
-						<fieldset>
-				<div class="input-field">
-					<div class="form-group">
-						<input class="form-control" id="file" type="file" name="file" multiple>
-					</div>
-					<div class="form-group">
-						<button class="btn btn-default btn-lg btn-block" type="submit">Enviar</button>
-					</div>
-				</div>
-				<br>
-				</fieldset>
-			</form>
-			</div>
-			</div>
-		</body>
-		</html>`, dir)
+	u := Upload{dir, files}
+
+	tt, _ := template.ParseFiles("views/upload.html")
+	tt.Execute(w, u)
 
 }
 
-func fileDownload(w http.ResponseWriter, req *http.Request) {
-	dir := "storage/" + req.URL.Path[1:]
-	http.ServeFile(w, req, dir)
+func fileDownload(w http.ResponseWriter, r *http.Request) {
+	dir := "storage/" + r.URL.Path[1:]
+	http.ServeFile(w, r, dir)
 }
 
-func fileDelete(w http.ResponseWriter, req *http.Request) {
-	dir := "storage/" + req.URL.Path[1:]
+func fileDelete(w http.ResponseWriter, r *http.Request) {
+	dir := "storage/" + r.URL.Path[1:]
 	dir = strings.TrimSuffix(dir, "/delete")
 
 	cmd := exec.Command("rm", "-rf", dir)
@@ -130,5 +89,5 @@ func fileDelete(w http.ResponseWriter, req *http.Request) {
 
 	dirs := strings.Split(dir, "/")
 
-	http.Redirect(w, req, "/"+dirs[1], 301)
+	http.Redirect(w, r, "/"+dirs[1], 301)
 }

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title>Dontfile</title>
+			<link rel="stylesheet"href="https://bootswatch.com/4/lumen/bootstrap.min.css">
+		</head>
+		<body>
+		<br>
+		<div class="container">
+			<div class="row"><br>
+
+				{{range .Files}}
+				<div class="col-md-3">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<p>{{.Name}}</p>
+						</div>
+						<div class="panel-body">
+							<a class="btn btn-danger" href="{{$.Directory}}/{{.Name}}/delete">Deletar</a>
+							<a class="btn btn-primary" href="{{$.Directory}}/{{.Name}}">Download</a>
+						</div>
+					</div> 
+				</div>
+				{{end}}
+
+			</div>
+
+			<hr>
+
+			<div class="row">
+				<form class="form-horizontal" action="/{{$.Directory}}" method="post" enctype="multipart/form-data">
+					<fieldset>
+						<div class="input-field">
+							<div class="form-group">
+								<input class="form-control" id="file" type="file" name="file" multiple>
+							</div>
+							<div class="form-group">
+								<button class="btn btn-default btn-lg btn-block" type="submit">Enviar</button>
+							</div>
+						</div>
+						<br>
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</body>
+</html>
