@@ -3,10 +3,35 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Dontfile</title>
-	<link rel="stylesheet"href="https://bootswatch.com/4/lumen/bootstrap.min.css">
+	<link rel="stylesheet" href="https://bootswatch.com/4/lumen/bootstrap.min.css">
 </head>
 <body>
-	<div class="container">
-		<h2>Use /{link} para compartilhar arquivos!</h2></body>
+	<div class="jumbotron">
+		<div class="row">
+		<div class="col-md-6 offset-md-3">
+				<h1 class="text-center">Dontfile</h1>
+				<p class="text-center"><i>An archive is an accumulation of historical records or the physical place they are located. Archives contain primary source documents that have accumulated over the course of an individual or organization's lifetime, and are kept to show the function of that person or organization. Professional archivists and historians generally understand archives to be records that have been naturally and necessarily generated as a product of regular legal, commercial, administrative, or social activities. They have been metaphorically defined as "the secretions of an organism", and are distinguished from documents that have been consciously written or created to communicate a particular message to posterity.</i></p>
+				<p class="text-right"><b><i>Wikipedia</b></i></p>
+				<hr>
+				<div class="">
+					<div class="input-group input-group-lg mt-2">
+						<span class="input-group-addon">dontfile.herokuapp.com/</span>
+						<input type="text" id="redirect-input" class="form-control" placeholder="choose your room...">
+						<span class="input-group-btn">
+							<button class="btn btn-secondary" onclick="redirect()" type="button">go!</button>
+						</span>
+					</input>
+				</div>
+			</div>
+		</div>
 	</div>
+</div>
+
+<script type="text/javascript">
+	function redirect(){
+		window.location.replace(window.location.href+document.getElementById("redirect-input").value);
+	}
+</script>
+
+</body>
 </html>
