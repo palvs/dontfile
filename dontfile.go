@@ -1,19 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
-type Upload struct {
+type Room struct {
 	Directory string
-	Files     []os.FileInfo
+	Files     []string
 }
 
 func main() {
@@ -68,11 +70,17 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 
 	files, _ := ioutil.ReadDir("storage/" + dir)
 
-	u := Upload{dir, files}
+	var ffiles []string
 
-	tt, _ := template.ParseFiles("views/upload.html")
-	tt.Execute(w, u)
+	for _, f := range files {
+		ffiles = append(ffiles, f.Name())
+	}
 
+	room := Room{dir, ffiles}
+
+	json, _ := json.Marshal(room)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
 }
 
 func fileDownload(w http.ResponseWriter, r *http.Request) {
@@ -81,13 +89,15 @@ func fileDownload(w http.ResponseWriter, r *http.Request) {
 }
 
 func fileDelete(w http.ResponseWriter, r *http.Request) {
-	dir := "storage/" + r.URL.Path[1:]
-	dir = strings.TrimSuffix(dir, "/delete")
+	if r.Method == http.MethodPost {
+		dir := "storage/" + r.URL.Path[1:]
+		dir = strings.TrimSuffix(dir, "/delete")
 
-	cmd := exec.Command("rm", "-rf", dir)
-	cmd.Run()
+		cmd := exec.Command("rm", "-rf", dir)
+		cmd.Run()
 
-	dirs := strings.Split(dir, "/")
+		dirs := strings.Split(dir, "/")
 
-	http.Redirect(w, r, "/"+dirs[1], 301)
+		http.Redirect(w, r, "/"+dirs[1], 301)
+	}
 }
