@@ -1,6 +1,20 @@
 import React, { Component } from 'react';
-
+import { withStyles } from 'material-ui/styles';
+import Grid from 'material-ui/Grid';
 import File from './components/file'
+
+const styles = theme => ({
+  root: {
+    flexGrow: 1,
+  },
+  paper: {
+    height: 140,
+    width: 100,
+  },
+  control: {
+    padding: theme.spacing.unit * 2,
+  },
+});
 
 class App extends Component {
   constructor() {
@@ -12,7 +26,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    fetch('http://localhost:3001/test')
+    fetch('http://localhost:3001/room')
     .then(resp => {
       resp.json()
       .then((resp) => {
@@ -22,15 +36,27 @@ class App extends Component {
   }
   
   render() {
+    
     return (
       <div>
-        <h1>{this.state.Directory}</h1>
-        {this.state.Files.map((file) => {
-          
-        })}
+        <Grid container className={this.props.classes.root} spacing={16}>
+          <Grid item xs={12}>
+            <Grid container justify="center" spacing={16}>
+              {this.state.Files.map(file => (
+                  <Grid item>
+                    <File source={'http://localhost:3001/'+this.state.Directory+'/'+file.Name}
+                      name={file.Name}
+                      date={file.ModeTime}
+                      size={file.Size}  
+                    />
+                  </Grid>
+              ))}
+            </Grid>
+          </Grid>
+        </Grid>
       </div>
     );
   }
 }
 
-export default App;
+export default withStyles(styles)(App);
