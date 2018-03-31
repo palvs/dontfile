@@ -32,7 +32,7 @@ class File extends Component {
                 <Card className={this.props.classes.card}>
                     <CardMedia
                         className={this.props.classes.media}
-                        image="http://via.placeholder.com/220x220"
+                        image={this.props.source}
                         title="Image Placeholder"
                     />
                     <CardContent>
