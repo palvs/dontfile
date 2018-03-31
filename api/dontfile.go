@@ -9,13 +9,21 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
+
+type FileInfo struct {
+    Name    string
+    Size    int64
+    ModTime time.Time
+}
+
 type Room struct {
 	Directory string
-	Files     []string
+	Files     []FileInfo
 }
 
 var STORAGE_DIR = "../storage/"
@@ -34,6 +42,8 @@ func main() {
 }
 
 func fileUpload(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	cmd := exec.Command("mkdir", STORAGE_DIR)
 	cmd.Run()
@@ -60,12 +70,18 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var file_names []string 
-	files, _ := ioutil.ReadDir(STORAGE_DIR + dir)
+	raw_files, _ := ioutil.ReadDir(STORAGE_DIR + dir)
+	var files []FileInfo 
 
-	for i, _ := range files { file_names = append(file_names, files[i].Name()) }
+	for _, raw_file := range raw_files { 
+		files = append(files, FileInfo{
+			Name:	 raw_file.Name(),
+			Size:	 raw_file.Size(),
+			ModTime: raw_file.ModTime(),
+		}) 
+	}
 
-	room := Room{dir, file_names}
+	room := Room{dir, files}
 
 	json, _ := json.Marshal(room)
 	w.Header().Set("Content-Type", "application/json")
