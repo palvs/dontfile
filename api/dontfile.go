@@ -1,9 +1,8 @@
 package main
 
 import (
-	//"encoding/json"
+	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -16,13 +15,13 @@ import (
 
 type Room struct {
 	Directory string
-	Files     []os.FileInfo
+	Files     []string
 }
+
+var STORAGE_DIR = "../storage/"
 
 func main() {
 	r := mux.NewRouter()
-
-	r.HandleFunc("/", indexHandler)
 
 	r.HandleFunc("/{[a-zA-Z0-9]+}", fileUpload)
 	r.HandleFunc("/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}", fileDownload)
@@ -34,14 +33,9 @@ func main() {
 	http.ListenAndServe(addr, r)
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("views/index.html")
-	t.Execute(w, nil)
-}
-
 func fileUpload(w http.ResponseWriter, r *http.Request) {
 
-	cmd := exec.Command("mkdir", "storage")
+	cmd := exec.Command("mkdir", STORAGE_DIR)
 	cmd.Run()
 
 	dir := r.URL.Path[1:]
@@ -56,38 +50,35 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 			file, _ := files[i].Open()
 			defer file.Close()
 
-			cmd := exec.Command("mkdir", "storage/"+dir)
+			cmd := exec.Command("mkdir", STORAGE_DIR + dir)
 			cmd.Run()
 
-			destinationFile, _ := os.Create("storage/" + dir + "/" + files[i].Filename)
+			destinationFile, _ := os.Create(STORAGE_DIR + dir + "/" + files[i].Filename)
 			defer destinationFile.Close()
 
 			io.Copy(destinationFile, file)
 		}
 	}
 
-	files, _ := ioutil.ReadDir("storage/" + dir)
+	var file_names []string 
+	files, _ := ioutil.ReadDir(STORAGE_DIR + dir)
 
-	room := Room{dir, files}
+	for i, _ := range files { file_names = append(file_names, files[i].Name()) }
 
-	t, _ := template.ParseFiles("views/upload.html")
-	t.Execute(w, room)
+	room := Room{dir, file_names}
 
-	/*
-		json, _ := json.Marshal(room)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(json)
-	*/
-
+	json, _ := json.Marshal(room)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
 }
 
 func fileDownload(w http.ResponseWriter, r *http.Request) {
-	dir := "storage/" + r.URL.Path[1:]
+	dir := STORAGE_DIR + r.URL.Path[1:]
 	http.ServeFile(w, r, dir)
 }
 
 func fileDelete(w http.ResponseWriter, r *http.Request) {
-	dir := "storage/" + r.URL.Path[1:]
+	dir := STORAGE_DIR + r.URL.Path[1:]
 	dir = strings.TrimSuffix(dir, "/delete")
 
 	cmd := exec.Command("rm", "-rf", dir)
