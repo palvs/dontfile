@@ -5,41 +5,43 @@ import (
 	//"strings"
 	"net/http"
 	"io/ioutil"
+	"io"
+	"net/url"
 	"os"
 )
 
-var dir string = "http://localhost:3001/test"
+var base string = "http://localhost:3001"
+var dir string = "/test"
 
 func main() {
-
-
-	fmt.Println("cli")
-	fmt.Println(os.Args[1])
-
-	ls()
+	upload("test.txt")
 }
 
 func download(file string) {
-	file_url := dir + file
+	fileUrl := base + dir + file
 
-	fmt.Println(file_url)
- 
-	req, _ := http.NewRequest("GET", file_url, nil)
-	res, _ := http.DefaultClient.Do(req)
+	fileOut, _ := os.Create(file)
+	defer fileOut.Close()
+
+	res, _ := http.Get(fileUrl)
 	defer res.Body.Close()
 
-	body, _ := ioutil.ReadAll(res.Body)
-
-	fmt.Println(string(body))
+	io.Copy(fileOut, res.Body)
 }
 
-func upload() {
+func upload(file string) {
+	fileUpload, _ := os.Open(file)
+	defer fileUpload.Close()
 
+	//res, _ := http.Post(base + dir, "binary/octet-stream", fileUpload)
+	res, _ := http.PostForm(base + dir, url.Values{"file": fileUpload})
+	defer res.Body.Close()
+
+	fmt.Println("Ok")
 }
 
 func ls() {
-	req, _ := http.NewRequest("GET", dir, nil)
-	res, _ := http.DefaultClient.Do(req)
+	res, _ := http.Get(base + dir)
 	defer res.Body.Close()
 
 	body, _ := ioutil.ReadAll(res.Body)
@@ -48,9 +50,9 @@ func ls() {
 }
 
 func cd(subdir string) {
-	
+	dir += "/" + subdir
 }
 
 func pwd() {
-
+	fmt.Println(dir)
 }
