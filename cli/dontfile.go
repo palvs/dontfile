@@ -10,10 +10,11 @@ import (
 	"os"
 )
 
-var base string = "http://localhost:3001"
-var dir string = "/test"
+var base string = "http://localhost:3001/"
+var dir string = "test"
 
 func main() {
+	
 	upload("test.txt")
 }
 
