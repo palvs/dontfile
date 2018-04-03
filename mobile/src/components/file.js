@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import {
     Dimensions,
+    Linking,
     StyleSheet,
     Text,
     View
@@ -13,7 +14,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F5FCFF',
     },
     title: {
         fontSize: 20,
@@ -46,7 +46,10 @@ export default class File extends Component {
                     {this.props.size}
                 </Text>
                 <Text style={styles.subtitle}>
-                    {this.props.source}
+                    <Text style={{ color: 'blue' }}
+                        onPress={() => Linking.openURL(this.props.source)}>
+                        Download
+                    </Text>
                 </Text>
             </View>
         )

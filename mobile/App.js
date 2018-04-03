@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 export default class App extends React.Component {
   render() {
     return (
-      <View>
+      <View style={styles.container}>
         <Room />
       </View>
     );
