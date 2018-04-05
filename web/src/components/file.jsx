@@ -26,40 +26,64 @@ const styles = {
 }
 
 class File extends Component {
+
+    renderName(name) {
+        if(name.length > 18) {
+            name = `${name.substring(0, 0.1*name.length)}...${name.substring(0.8*name.length, name.length)}`
+        }
+        return name
+    }
+
+    renderDate(date) {
+        return new Date(date).toDateString()
+    }
+
+    renderSize(size) {
+        const i = Math.floor(Math.log(size) / Math.log(1024));
+        return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+    }
+
     render() {
+        console.log(this.props)
+        const { name, date, size, classes, source } = this.props
+
         return (
             <div>
-                <Card className={this.props.classes.card}>
+                <Card className={classes.card}>
                     <CardMedia
-                        className={this.props.classes.media}
-                        image={this.props.source}
+                        className={classes.media}
+                        image={source}
                         title="Image Placeholder"
                     />
                     <CardContent>
-                        <Typography variant="headline" 
-                                    component="h2">
-                            {this.props.name}
+                        <Typography variant="body2">
+                            {this.renderName(name)}
+                            <Typography className={classes.pos}
+                                color="textSecondary">
+                                {this.renderSize(size)}
+                            </Typography>   
                         </Typography>
-                        <Typography className={this.props.classes.pos} 
+                        <Typography className={classes.pos} 
                                     color="textSecondary">
-                            {this.props.date} | {this.props.size}
+                            {this.renderDate(date)}
                         </Typography>
                     </CardContent>
                     <CardActions>
-                        <Button href={this.props.source}
+                        <Button href={source}
                                 size="small" 
                                 color="primary" 
-                                className={this.props.classes.button}>
+                                className={classes.button}>
                             <GetApp />
                         </Button>
                         <Button size="small" 
                                 color="secondary" 
-                                className={this.props.classes.button}>
+                                className={classes.button}
+                                onClick={this.props.delete}>
                             <Delete />
                         </Button>
                         <Button size="small" 
                                 color="default" 
-                                className={this.props.classes.button}>
+                                className={classes.button}>
                             <Bookmark />
                         </Button>
                     </CardActions>

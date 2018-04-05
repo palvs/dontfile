@@ -44,7 +44,7 @@ func fileIndex(w http.ResponseWriter, r *http.Request) {
 	dir := mux.Vars(r)["room"]
 
 	rawFiles, _ := ioutil.ReadDir(STORAGE_DIR + dir)
-	var files []FileInfo 
+	files := []FileInfo{}
 
 	for _, rawFile := range rawFiles { 
 		files = append(files, FileInfo{

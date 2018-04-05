@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+
+import { BrowserRouter as Router, Route, DefaultRoute } from 'react-router-dom'
+
 import { withStyles } from 'material-ui/styles';
 import Grid from 'material-ui/Grid';
 import Typography from 'material-ui/Typography';
@@ -19,15 +22,14 @@ const styles = theme => ({
 
 class App extends Component {
   render() {
+
     return (
-      <div>
-        <div className={this.props.classes.main}>
-          <Room />
+      <Router>
+        <div>
+          <Route exact path="/" component={Drop} />
+          <Route path="*" component={Room} />
         </div>
-        <div className={this.props.classes.navBottom}>
-          <Drop />
-        </div>
-      </div>
+      </Router>
     )
   }
 }

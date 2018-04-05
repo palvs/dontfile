@@ -23,13 +23,25 @@ class Room extends Component {
     }
   }
 
-  componentDidMount() {
-    fetch('http://localhost:3001/room')
+  componentDidMount() { 
+    const path = window.location.pathname
+
+    fetch('http://localhost:3002'+path)
     .then(resp => {
       resp.json()
       .then((resp) => {
         this.setState(resp)
       })
+    })
+  }
+
+
+  deleteFile(file) {
+    fetch('http://localhost:3002/'+this.state.Directory+'/'+file.Name, { method: 'DELETE' })
+    //.then(resp => resp.json())
+    .then(resp => {
+      const files = this.state.Files.filter(f => f.Name !== file.Name)
+      this.setState({...this.state.Directory, Files: files})
     })
   }
   
@@ -41,10 +53,11 @@ class Room extends Component {
             <Grid container justify="center" spacing={16}>
               {this.state.Files.map(file => (
                   <Grid item>
-                    <File source={'http://localhost:3001/'+this.state.Directory+'/'+file.Name}
+                    <File source={'http://localhost:3002/'+this.state.Directory+'/'+file.Name}
                       name={file.Name}
                       date={file.ModTime}
-                      size={file.Size}  
+                      size={file.Size}
+                      delete={() => { this.deleteFile(file) }}
                     />
                   </Grid>
               ))}
