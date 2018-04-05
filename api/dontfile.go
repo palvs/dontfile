@@ -30,6 +30,7 @@ var STORAGE_DIR = "../storage/"
 func main() {
 	r := mux.NewRouter()
 
+	r.HandleFunc("/", fileIndex).Methods("GET")
 	r.HandleFunc("/{room:[^.]+[^./]}", fileIndex).Methods("GET")
 	r.HandleFunc("/{room:[^.]+[^./]}", fileUpload).Methods("POST")
 	r.HandleFunc("/{room:[^.]+[^./]}{file}", fileDownload).Methods("GET")
