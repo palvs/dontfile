@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 type FileInfo struct {
@@ -35,7 +36,8 @@ func main() {
 
 	addr := ":" + os.Getenv("PORT")
 
-	http.ListenAndServe(addr, r)
+	handler := cors.AllowAll().Handler(r)
+	http.ListenAndServe(addr, handler)
 }
 
 func fileIndex(w http.ResponseWriter, r *http.Request) {
@@ -60,9 +62,6 @@ func fileIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func fileUpload(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	dir := mux.Vars(r)["room"]
 
 	cmd := exec.Command("mkdir", "-p", STORAGE_DIR + dir)
