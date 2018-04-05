@@ -15,7 +15,8 @@ import (
 
 type FileInfo struct {
     Name    string
-    Size    int64
+	Size    int64
+	Dir		bool
     ModTime time.Time
 }
 
@@ -46,10 +47,11 @@ func fileIndex(w http.ResponseWriter, r *http.Request) {
 	rawFiles, _ := ioutil.ReadDir(STORAGE_DIR + dir)
 	files := []FileInfo{}
 
-	for _, rawFile := range rawFiles { 
+	for _, rawFile := range rawFiles {
 		files = append(files, FileInfo{
 			Name:	 rawFile.Name(),
 			Size:	 rawFile.Size(),
+			Dir:	 rawFile.IsDir(),
 			ModTime: rawFile.ModTime(),
 		}) 
 	}
@@ -97,6 +99,6 @@ func fileDelete(w http.ResponseWriter, r *http.Request) {
 	file := v["room"] + v["file"]
 	dir := STORAGE_DIR + file
 
-	cmd := exec.Command("rm", "-rf", dir)
+	cmd := exec.Command("rm", dir)
 	cmd.Run()
 }
