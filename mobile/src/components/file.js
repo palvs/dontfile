@@ -7,6 +7,8 @@ import {
     View
 } from 'react-native'
 
+import Icon from 'react-native-vector-icons/Ionicons';
+
 const width = Dimensions.get('screen').width;
 
 const styles = StyleSheet.create({
@@ -46,10 +48,10 @@ export default class File extends Component {
                     {this.props.size}
                 </Text>
                 <Text style={styles.subtitle}>
-                    <Text style={{ color: 'blue' }}
-                        onPress={() => Linking.openURL(this.props.source)}>
-                        Download
-                    </Text>
+                    <Icon name="ios-download" 
+                          size={30} 
+                          color="#4F8EF7"
+                        onPress={() => Linking.openURL(this.props.source)}   />
                 </Text>
             </View>
         )

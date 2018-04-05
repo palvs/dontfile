@@ -2,18 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 )
-
 
 type FileInfo struct {
     Name    string
@@ -31,53 +28,27 @@ var STORAGE_DIR = "../storage/"
 func main() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/{[a-zA-Z0-9]+}", fileUpload)
-	r.HandleFunc("/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}", fileDownload)
-	r.HandleFunc("/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}/delete", fileDelete)
+	r.HandleFunc("/{room:[^.]+[^./]}", fileIndex).Methods("GET")
+	r.HandleFunc("/{room:[^.]+[^./]}", fileUpload).Methods("POST")
+	r.HandleFunc("/{room:[^.]+[^./]}{file}", fileDownload).Methods("GET")
+	r.HandleFunc("/{room:[^.]+[^./]}{file}", fileDelete).Methods("DELETE")
 
 	addr := ":" + os.Getenv("PORT")
 
-	fmt.Println(addr)
 	http.ListenAndServe(addr, r)
 }
 
-func fileUpload(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+func fileIndex(w http.ResponseWriter, r *http.Request) {
+	dir := mux.Vars(r)["room"]
 
-	cmd := exec.Command("mkdir", STORAGE_DIR)
-	cmd.Run()
-
-	dir := r.URL.Path[1:]
-
-	if r.Method == http.MethodPost {
-		_ = r.ParseMultipartForm(100000)
-		m := r.MultipartForm
-
-		files := m.File["file"]
-
-		for i := range files {
-			file, _ := files[i].Open()
-			defer file.Close()
-
-			cmd := exec.Command("mkdir", STORAGE_DIR + dir)
-			cmd.Run()
-
-			destinationFile, _ := os.Create(STORAGE_DIR + dir + "/" + files[i].Filename)
-			defer destinationFile.Close()
-
-			io.Copy(destinationFile, file)
-		}
-	}
-
-	raw_files, _ := ioutil.ReadDir(STORAGE_DIR + dir)
+	rawFiles, _ := ioutil.ReadDir(STORAGE_DIR + dir)
 	var files []FileInfo 
 
-	for _, raw_file := range raw_files { 
+	for _, rawFile := range rawFiles { 
 		files = append(files, FileInfo{
-			Name:	 raw_file.Name(),
-			Size:	 raw_file.Size(),
-			ModTime: raw_file.ModTime(),
+			Name:	 rawFile.Name(),
+			Size:	 rawFile.Size(),
+			ModTime: rawFile.ModTime(),
 		}) 
 	}
 
@@ -88,19 +59,45 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+func fileUpload(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	dir := mux.Vars(r)["room"]
+
+	cmd := exec.Command("mkdir", "-p", STORAGE_DIR + dir)
+	cmd.Run()
+
+	_ = r.ParseMultipartForm(100000)
+	m := r.MultipartForm
+
+	files := m.File["file"]
+
+	for i := range files {
+		file, _ := files[i].Open()
+		defer file.Close()
+
+		destinationFile, _ := os.Create(STORAGE_DIR + dir + "/" + files[i].Filename)
+		defer destinationFile.Close()
+
+		io.Copy(destinationFile, file)
+	}
+
+}
+
 func fileDownload(w http.ResponseWriter, r *http.Request) {
-	dir := STORAGE_DIR + r.URL.Path[1:]
+	v := mux.Vars(r)
+	file := v["room"] + v["file"]
+
+	dir := STORAGE_DIR + file
 	http.ServeFile(w, r, dir)
 }
 
 func fileDelete(w http.ResponseWriter, r *http.Request) {
-	dir := STORAGE_DIR + r.URL.Path[1:]
-	dir = strings.TrimSuffix(dir, "/delete")
+	v := mux.Vars(r)
+	file := v["room"] + v["file"]
+	dir := STORAGE_DIR + file
 
 	cmd := exec.Command("rm", "-rf", dir)
 	cmd.Run()
-
-	dirs := strings.Split(dir, "/")
-
-	http.Redirect(w, r, "/"+dirs[1], 301)
 }
