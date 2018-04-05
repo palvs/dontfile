@@ -43,6 +43,21 @@ class Room extends Component {
     })
   }
 
+  componentDidUpdate() {
+    fetch('http://localhost:3002/' + this.state.Directory)
+      .then(resp => {
+        resp.json()
+          .then((resp) => {
+            console.log('set')
+            if(JSON.stringify(this.state) !== JSON.stringify(resp)) {
+              this.setState(resp)
+              console.log(JSON.stringify(this.state))
+              console.log(JSON.stringify(resp))
+            }
+          })
+      })
+  }
+
 
   deleteFile(file) {
     fetch('http://localhost:3002/'+this.state.Directory+'/'+file.Name, { method: 'DELETE' })
@@ -78,7 +93,7 @@ class Room extends Component {
                   justify="center" 
                   spacing={16}>
               {this.state.Files.map(file => (
-                  <Grid item>
+                  <Grid item key={file.Name}>
                     <File source={'http://localhost:3002/'+this.state.Directory+'/'+file.Name}
                       name={file.Name}
                       date={file.ModTime}
